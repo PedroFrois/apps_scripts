@@ -3,6 +3,18 @@ var ROWS_TABLE = 34;
 var TABLE_STARTING_HOUR = 6;
 var SHEET_NAMES = ["Last Week","Current Week","Next Week"];
 
+//add menu
+function onOpen() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var menuItems = [
+    //{name: 'Prepare sheet...', functionName: 'prepareSheet_'},
+    {name: 'Get events...', functionName: 'main'},
+    {name: 'Preencher com x...', functionName: 'preencheX'}
+  ];
+  spreadsheet.addMenu('Scripts', menuItems);
+}
+
+
 //prepare spreadsheet
 function prepare(mySheet){
   mySheet.deleteColumns(1,20);
@@ -176,7 +188,7 @@ function main(){
   var calendarIds = getCalendarIds();
   Logger.log('Calendar IDs: %s', calendarIds);
 
-  for(i = 0; i < SHEET_NAMES.length; i++){
+  for(var i = 0; i < SHEET_NAMES.length; i++){
     var initDate = new Date(mondayDate);
     switch(i){
       case 0:
@@ -203,7 +215,7 @@ function main(){
     var tableToInsert = cleanTable(rawTableToInsert);
 
     var range = "";
-    range.concat("'",SHEET_NAMES[i],"'!C3:I36");
+    range = range.concat("'",SHEET_NAMES[i],"'!C3:I36");
 
     Logger.log('Inserting in ', range);  
     insertTable(mySpreadsheet.getId(), tableToInsert, range);
@@ -212,24 +224,36 @@ function main(){
 
 
 function test(){ 
-  
-  var mondayDate = getMonday(new Date());
-  Logger.log('Monday',mondayDate);  
-  var finalDate = getFinalDayOfWeek(mondayDate);
-  Logger.log('Final', finalDate);
-                
-  //var calendarIds = getCalendarIds();
-  //Logger.log('Calendar IDs: %s', calendarIds);
 
-  //var events = getEvents(mondayDate, finalDate, calendarIds);
-  //Logger.log('Events from %s to %s', mondayDate, finalDate, weekEvents);
-
-  Logger.log('Preparing data');  
-  var rawTableToInsert = prepareDataToInsert(mondayDate, [[1]]);
-
-  Logger.log('Cleaning');  
-  var tableToInsert = cleanTable(rawTableToInsert);
-
-  Logger.log('Inserting');  
-  insertTable(mySpreadsheet.getId(), tableToInsert, range);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+function preencheX() {
+  for(var i = 0; i < SHEET_NAMES.length; i++){
+    var spreadsheet = SpreadsheetApp.getActive();
+    spreadsheet.getRange('C4').activate();
+    spreadsheet.setActiveSheet(spreadsheet.getSheetByName(SHEET_NAMES[i]), true);
+    spreadsheet.getCurrentCell().setValue('x');
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('C4:C9'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('C4:C5').activate();
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('C4:I5'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('E5').activate();
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('E5:E9'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('C34').activate();
+    spreadsheet.getCurrentCell().setValue('x');
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('C34:I34'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('I14').activate();
+    spreadsheet.getCurrentCell().setValue('x');
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('I14:I19'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('C34:I34').activate();
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('C34:I36'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('C17').activate();
+    spreadsheet.getCurrentCell().setValue('x');
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('C17:C22'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('C17:C22').activate();
+    spreadsheet.setCurrentCell(spreadsheet.getRange('C22'));
+    spreadsheet.getActiveRange().autoFill(spreadsheet.getRange('C17:F22'), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES);
+    spreadsheet.getRange('C17:F22').activate();
+    spreadsheet.setCurrentCell(spreadsheet.getRange('C22'));
+  }
+};
