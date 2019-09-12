@@ -1,4 +1,4 @@
-//Global
+//global
 var ROWS_TABLE = 34;
 var TABLE_STARTING_HOUR = 6;
 var SHEET_NAMES = ["Last Week","Current Week","Next Week"];
@@ -9,15 +9,21 @@ function onOpen() {
   var menuItems = [
     //{name: 'Prepare sheet...', functionName: 'prepareSheet_'},
     {name: 'Get events...', functionName: 'main'},
-    {name: 'Preencher com x...', functionName: 'preencheX'}
+    {name: 'Preencher com x...', functionName: 'xFill'}
   ];
   spreadsheet.addMenu('Scripts', menuItems);
 }
 
+//util
+function getColumn(d){
+  return Math.abs(d.getDay() == 0 ? 6:(d.getDay()-1));
+}
 
-//prepare spreadsheet
-function prepare(mySheet){
-  mySheet.deleteColumns(1,20);
+function getRow(d){
+  var rowHour = d.getHours() - TABLE_STARTING_HOUR;
+  var rowMinute = Math.round(d.getMinutes()/30);
+  var row = rowHour*2 + rowMinute + 1;//header
+  return row;
 }
 
 function getMonday(d) {
@@ -39,6 +45,17 @@ function getFinalDayOfWeek(d){
   return d;
 }
 
+//clean table (empty spaces between 2 filled spaces get filled with x)
+function cleanTable(rawTable){
+  for(j = 0; j < rawTable[0].length; j++){
+    for(i = 1; i < rawTable.length - 1; i++){
+      if(rawTable[i][j] == "" && rawTable[i-1][j] != "" && rawTable[i+1][j] != ""){
+        rawTable[i][j] = "Junk space";
+      }
+    }
+  }
+  return rawTable;
+}
 
 //get events of week
 function getEvents(initDate, finalDate, calendarIds){
@@ -64,8 +81,7 @@ function getEvents(initDate, finalDate, calendarIds){
         Logger.log(ex);
       }
     }
-  }
-  
+  } 
   return events;
 }
 
@@ -77,17 +93,6 @@ function getCalendarIds(){
       ids.push(response[i].id);
   }
   return ids;
-}
-
-function getColumn(d){
-  return Math.abs(d.getDay() == 0 ? 6:(d.getDay()-1));
-}
-
-function getRow(d){
-  var rowHour = d.getHours() - TABLE_STARTING_HOUR;
-  var rowMinute = Math.round(d.getMinutes()/30);
-  var row = rowHour*2 + rowMinute + 1;//header
-  return row;
 }
 
 //fill table with events
@@ -135,29 +140,13 @@ function prepareDataToInsert(mondayDate, weekEvents){
         rows[k][column] = eventName;
       } 
     }catch(ex){
-    Logger.log(ex);
+      Logger.log(ex);
     }
   }
-
   return rows;     
 }
-//clean table (empty spaces between 2 filled spaces get filled with x)
-function cleanTable(rawTable){
-  for(j = 0; j < rawTable[0].length; j++){
-    for(i = 1; i < rawTable.length - 1; i++){
-      if(rawTable[i][j] == "" && rawTable[i-1][j] != "" && rawTable[i+1][j] != ""){
-        rawTable[i][j] = "Junk space";
-      }
-    }
-  }
-  return rawTable;
-}
-//insert table
 
-/**
- * Write to multiple, disjoint data ranges.
- * @param {string} spreadsheetId The spreadsheet ID to write to.
- */
+//insert table in spreadsheet
 function insertTable(spreadsheetId, table, tableRange) {
   var request = {
     'valueInputOption': 'USER_ENTERED',
@@ -172,9 +161,6 @@ function insertTable(spreadsheetId, table, tableRange) {
   var response = Sheets.Spreadsheets.Values.batchUpdate(request, spreadsheetId);
   Logger.log(response);
 }
-
-//format table
-
 
 //Call everything
 function main(){
@@ -222,13 +208,10 @@ function main(){
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function test(){ 
-
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-function preencheX() {
+//fill with x all the non usable times for classes
+function xFill() {
   for(var i = 0; i < SHEET_NAMES.length; i++){
     var spreadsheet = SpreadsheetApp.getActive();
     spreadsheet.getRange('C4').activate();
